@@ -14,7 +14,35 @@ To use the application, you'll need to add plugins. Several common plugins are a
 
 TODO
 
+## Development Setup
+
+1. Clone the Repository
+
+First, clone the repository and navigate into the project directory:
+
+```bash
+git clone https://github.com/nohackjustnoobb/RPi-WidgetBox && cd RPi-WidgetBox
+```
+
+2. Build the Static Files
+
+Ensure you have `node` and `yarn` installed before running the build script:
+
+```bash
+chmod +x build_static.sh && ./build_static.sh
+```
+
+3. Run the Application
+
+Finally, start the application using Cargo:
+
+```bash
+cargo run
+```
+
 ## Roadmap to v1.0.0
 
-- [ ] Display modules
-- [ ] Build script
+- [x] Display modules
+- [x] Build script
+- [ ] Documentation
+- [ ] Dockerize

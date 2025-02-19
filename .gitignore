@@ -3,3 +3,5 @@
 /plugins
 
 .DS_Store
+
+/static

@@ -1,0 +1,35 @@
+html,
+body {
+  user-select: none;
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  line-height: 1.25;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent !important;
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+html[data-theme="light"] {
+  --color-border: #999999;
+  --color-text: #000000;
+  --color-background: #f7f7f7;
+  --color-sub-background: #ffffff;
+  --color-warning: #ff4545;
+}
+
+html[data-theme="dark"] {
+  --color-border: #717171;
+  --color-text: #c3c3c3;
+  --color-background: #2b2b2b;
+  --color-sub-background: #373737;
+  --color-warning: #cc3300;
+}
+
+info {
+  display: none;
+}

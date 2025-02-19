@@ -2,7 +2,10 @@ mod handler;
 mod logger;
 mod plugin;
 
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use log::{error, info};
 use regex::Regex;
@@ -69,26 +72,97 @@ impl Server {
     }
 }
 
-fn try_find_plugin(path: &str) -> Result<Response> {
-    let re = Regex::new("/script/(.*)\\.js").unwrap();
-    let not_found: std::result::Result<Response, _> =
-        Ok(Response::new(404, "Not Found", b"404 - Not Found".to_vec()));
+fn read_file_in_folder(folder: &str, filename: &str) -> Option<String> {
+    let folder_path = Path::new(folder);
 
-    if let Some(caps) = re.captures(path) {
+    if !folder_path.is_dir() {
+        return None;
+    }
+
+    let file_path: PathBuf = folder_path.join(filename);
+
+    if file_path.is_file() {
+        match fs::read_to_string(&file_path) {
+            Ok(contents) => Some(contents),
+            Err(_) => None,
+        }
+    } else {
+        None
+    }
+}
+
+fn try_serve_static_file(folder: &str, filename: &str) -> Option<Response> {
+    if let Some(content) = read_file_in_folder(folder, filename) {
+        let extension = Path::new(filename)
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .unwrap_or("");
+
+        let content_type = match extension {
+            "js" => b"text/javascript".to_vec(),
+            "css" => b"text/css".to_vec(),
+            _ => b"text/plain".to_vec(),
+        };
+
+        let mut response = Response::new(200, "OK", content.as_bytes().to_vec());
+        response
+            .headers_mut()
+            .push(("Content-Type".into(), content_type));
+
+        return Some(response);
+    }
+    None
+}
+
+fn try_find_plugin_or_static(path: &str) -> Result<Response> {
+    let not_found = Ok(Response::new(404, "Not Found", b"404 - Not Found".to_vec()));
+
+    let script_re = Regex::new("/script/(.*)\\.js").unwrap();
+    if let Some(caps) = script_re.captures(path) {
         let file_path = format!("plugins/{}/script.js", &caps[1]);
 
         if Path::new(&file_path).exists() {
-            if let Ok(content) = fs::read_to_string(file_path) {
-                let mut resp = Response::new(200, "OK", content.as_bytes().to_vec());
-                resp.headers_mut()
+            if let Ok(content) = fs::read_to_string(&file_path) {
+                let mut response = Response::new(200, "OK", content.as_bytes().to_vec());
+                response
+                    .headers_mut()
                     .push(("Content-Type".into(), b"text/javascript".to_vec()));
-
-                return Ok(resp);
+                return Ok(response);
             }
         }
     }
 
+    let edit_re = Regex::new(r"/edit/(.*)").unwrap();
+    if let Some(caps) = edit_re.captures(path) {
+        if let Some(response) = try_serve_static_file("static/editor", &caps[1]) {
+            return Ok(response);
+        }
+    }
+
+    let display_re = Regex::new(r"/(.*)").unwrap();
+    if let Some(caps) = display_re.captures(path) {
+        if let Some(response) = try_serve_static_file("static/display", &caps[1]) {
+            return Ok(response);
+        }
+    }
+
     not_found
+}
+
+fn read_html(folder: &str) -> Response {
+    let mut resp = Response::new(
+        200,
+        "OK",
+        read_file_in_folder(folder, "index.html")
+            .unwrap()
+            .as_bytes()
+            .to_vec(),
+    );
+
+    resp.headers_mut()
+        .push(("Content-Type".into(), b"text/html".to_vec()));
+
+    return resp;
 }
 
 impl Handler for Server {
@@ -98,11 +172,11 @@ impl Handler for Server {
                 if req.header("upgrade").is_some() {
                     Response::from_request(req)
                 } else {
-                    Ok(Response::new(200, "OK", b"TODO: client".to_vec()))
+                    Ok(read_html("static/display"))
                 }
             }
-            "/edit" => Ok(Response::new(200, "OK", b"TODO: edit".to_vec())),
-            _ => try_find_plugin(req.resource()),
+            "/edit" => Ok(read_html("static/editor")),
+            _ => try_find_plugin_or_static(req.resource()),
         }
     }
 
