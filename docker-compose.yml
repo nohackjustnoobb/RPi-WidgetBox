@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  app:
+    container_name: rpi-widgetbox
+    build: .
+    ports:
+      - 3012:3012
+    volumes:
+      - ./plugins:/app/plugins
+    restart: unless-stopped

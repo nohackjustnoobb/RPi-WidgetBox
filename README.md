@@ -12,7 +12,69 @@ To use the application, you'll need to add plugins. Several common plugins are a
 
 ## Quick Start
 
-TODO
+### Option 1: Using Docker Compose
+
+1. Create the docker-compose.yml File
+
+Create a docker-compose.yml file with the following sample configuration:
+
+`docker-compose.yml`
+
+```yml
+version: "3"
+
+services:
+  app:
+    image: nohackjustnoobb/rpi-widgetbox
+    container_name: rpi-widgetbox
+    ports:
+      - "3012:3012"
+    volumes:
+      - ./plugins:/app/plugins
+    restart: unless-stopped
+```
+
+2. Run the Docker Image
+
+Start the application using Docker Compose:
+
+```bash
+sudo docker compose up -d
+```
+
+### Option 2: Manual Setup
+
+1. Clone the Repository
+
+First, clone the repository and navigate into the project directory:
+
+```bash
+git clone https://github.com/nohackjustnoobb/RPi-WidgetBox && cd RPi-WidgetBox
+```
+
+2. Build the Static Files
+
+Ensure you have `node` and `yarn` installed before running the build script:
+
+```bash
+chmod +x build_static.sh && ./build_static.sh
+```
+
+3. Build the Rust Application
+
+Compile the Rust project in release mode:
+
+```bash
+cargo build --release
+```
+
+4. Run the Application
+
+Start the application by running the following:
+
+```bash
+./target/release/rpi-widgetbox
+```
 
 ## Development Setup
 
@@ -45,4 +107,4 @@ cargo run
 - [x] Display modules
 - [x] Build script
 - [ ] Documentation
-- [ ] Dockerize
+- [x] Dockerize

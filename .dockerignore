@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+
+/target
+/plugins
+/static
+
+.DS_Store
