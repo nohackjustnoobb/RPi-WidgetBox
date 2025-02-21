@@ -108,3 +108,4 @@ cargo run
 - [x] Build script
 - [ ] Documentation
 - [x] Dockerize
+- [ ] Auto-Update

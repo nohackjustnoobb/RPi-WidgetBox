@@ -10,12 +10,23 @@ use std::path::Path;
 use ws::Result;
 
 #[derive(Clone, Serialize, Deserialize)]
+pub struct SelectOption {
+    name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    value: Option<Value>,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Config {
     name: String,
     #[serde(rename = "type")]
     type_: String,
     default: Value,
     value: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    hint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    options: Option<Vec<SelectOption>>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -26,7 +37,9 @@ pub struct ConfigValue {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Script {
+    #[serde(skip_serializing_if = "Option::is_none")]
     url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     inline: Option<String>,
 }
 
@@ -34,8 +47,11 @@ pub struct Script {
 pub struct PluginMeta {
     name: String,
     version: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     configs: Option<Vec<Config>>,
     script: Script,
 }
@@ -137,6 +153,8 @@ impl Server {
                 type_: "checkbox".to_string(),
                 default: Value::Bool(false),
                 value: None,
+                hint: None,
+                options: None,
             },
         );
 

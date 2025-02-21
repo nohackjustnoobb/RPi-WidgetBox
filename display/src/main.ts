@@ -72,6 +72,8 @@ class Display {
           type: "listPlugins",
         })
     );
+
+    document.body.ondblclick = this.next.bind(this);
   }
 
   updateDOM() {
@@ -88,13 +90,15 @@ class Display {
     const info = document.querySelector(".info");
     if (info) {
       // No changes
-      if (JSON.stringify(this.selected) === info.innerHTML) return;
+      const stringified = JSON.stringify(this.selected);
+      if (stringified === info.innerHTML) return;
 
       // Check if only the config changes
       const parsed = JSON.parse(info.innerHTML);
       if (parsed.name === this.selected.name) {
         const webComponent = document.querySelector(this.selected.name);
         if (webComponent) {
+          info.innerHTML = stringified;
           for (const config of this.selected.configs) {
             if (config.name !== "enabled" && config.value !== null)
               webComponent.setAttribute(config.name, String(config.value));
@@ -123,6 +127,29 @@ class Display {
         webComponent.setAttribute(config.name, String(config.value));
     }
     document.body.appendChild(webComponent);
+  }
+
+  // TODO not tested
+  next() {
+    const plugins = this.plugins;
+
+    if (plugins.length <= 1) return;
+
+    if (!this.selected) {
+      this.selected = plugins[0];
+      return this.updateDOM();
+    }
+
+    const currentIndex = plugins.findIndex(
+      (p) => p.name === this.selected!.name
+    );
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + 1;
+    this.selected =
+      nextIndex >= plugins.length ? plugins[0] : plugins[nextIndex];
+
+    return this.updateDOM();
   }
 
   handler(mesg: Message) {
