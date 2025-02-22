@@ -108,6 +108,9 @@ fn try_serve_static_file(folder: &str, filename: &str) -> Option<Response> {
         response
             .headers_mut()
             .push(("Content-Type".into(), content_type));
+        response
+            .headers_mut()
+            .push(("Access-Control-Allow-Origin".into(), "*".into()));
 
         return Some(response);
     }
@@ -127,6 +130,9 @@ fn try_find_plugin_or_static(path: &str) -> Result<Response> {
                 response
                     .headers_mut()
                     .push(("Content-Type".into(), b"text/javascript".to_vec()));
+                response
+                    .headers_mut()
+                    .push(("Access-Control-Allow-Origin".into(), "*".into()));
                 return Ok(response);
             }
         }

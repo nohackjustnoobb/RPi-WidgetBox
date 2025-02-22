@@ -1,6 +1,9 @@
-import "./style.css";
+import './style.css';
 
-import { Message, WebSocketClient } from "./webSocket";
+import {
+  Message,
+  WebSocketClient,
+} from './webSocket';
 
 function updateTheme() {
   const useDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -119,6 +122,7 @@ class Display {
 
     const scriptElement = document.createElement("script");
     scriptElement.src = this.selected.script.url!;
+    scriptElement.setAttribute("type", "module");
     document.body.appendChild(scriptElement);
 
     const webComponent = document.createElement(this.selected.name);

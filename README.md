@@ -109,3 +109,6 @@ cargo run
 - [ ] Documentation
 - [x] Dockerize
 - [ ] Auto-Update
+- [ ] Customizable display options
+- [ ] New Config Type: Web Component
+- [ ] New Config Type: Upload
