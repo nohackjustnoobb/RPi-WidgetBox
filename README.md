@@ -76,6 +76,16 @@ Start the application by running the following:
 ./target/release/rpi-widgetbox
 ```
 
+## Useage
+
+1. Run the application. The server will start and listen on port `3012`.
+
+2. Open your browser and go to `http://localhost:3012`. This page displays the widgets.
+
+- Double-click the screen to switch to the next one.
+
+3. To edit the widgets, go to `http://localhost:3012/edit`.
+
 ## Development Setup
 
 1. Clone the Repository

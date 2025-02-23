@@ -53,13 +53,22 @@ pub struct PluginMeta {
     description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     configs: Option<Vec<Config>>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "backgroundScript")]
+    background_script: Option<Script>,
     script: Script,
 }
 
 impl PluginMeta {
     pub fn update_script(&mut self) {
-        self.script.url = Some(format!("/script/{}.js", self.name));
+        self.script.url = Some(format!("/plugin/{}/index.js", self.name));
         self.script.inline = None;
+
+        if self.background_script.is_some() {
+            self.background_script = Some(Script {
+                url: Some(format!("/plugin/{}/background.js", self.name)),
+                inline: None,
+            })
+        }
     }
 }
 
@@ -199,36 +208,55 @@ impl Server {
             return self.send(Message::error("Failed to write to meta file."));
         };
 
-        let script = match parsed.script.inline.as_ref() {
-            Some(s) => s.clone(),
-            None => {
-                let url = parsed.script.url.as_ref().unwrap();
-                let resp = match get(url) {
-                    Ok(r) => r,
-                    Err(_) => return self.send(Message::error("Failed to get the script file.")),
+        macro_rules! process_script {
+            ($script:expr, $dir_path:expr, $filename:expr, $error_msg_fetch:expr, $error_msg_write:expr) => {
+                let script = match $script.inline.as_ref() {
+                    Some(s) => s.clone(),
+                    None => {
+                        let url = $script.url.as_ref().unwrap();
+                        let resp = match get(url) {
+                            Ok(r) => r,
+                            Err(_) => return self.send(Message::error($error_msg_fetch)),
+                        };
+                        match resp.text() {
+                            Ok(t) => t,
+                            Err(_) => return self.send(Message::error($error_msg_fetch)),
+                        }
+                    }
                 };
 
-                match resp.text() {
-                    Ok(t) => t,
-                    Err(_) => return self.send(Message::error("Failed to get the script file.")),
-                }
-            }
-        };
+                let file_path = format!("{}/{}", $dir_path, $filename);
+                let mut file = match File::create(&file_path) {
+                    Ok(f) => f,
+                    Err(_) => {
+                        fs::remove_dir_all(&$dir_path).unwrap();
+                        return self.send(Message::error($error_msg_write));
+                    }
+                };
+                if file.write_all(script.as_bytes()).is_err() {
+                    fs::remove_dir_all(&$dir_path).unwrap();
+                    return self.send(Message::error($error_msg_write));
+                };
+            };
+        }
 
-        let file_path = format!("{}/script.js", dir_path);
-        let mut file = match File::create(file_path) {
-            Ok(f) => f,
-            Err(_) => {
-                fs::remove_dir_all(&dir_path).unwrap();
-                return self.send(Message::error("Failed to create script file."));
-            }
-        };
+        process_script!(
+            parsed.script,
+            dir_path,
+            "index.js",
+            "Failed to get the script file.",
+            "Failed to create script file."
+        );
 
-        if file.write_all(script.as_bytes()).is_err() {
-            fs::remove_dir_all(&dir_path).unwrap();
-            return self.send(Message::error("Failed to write to script file."));
-        };
-
+        if let Some(bg_script) = &parsed.background_script {
+            process_script!(
+                bg_script,
+                dir_path,
+                "background.js",
+                "Failed to get the background script file.",
+                "Failed to create background script file."
+            );
+        }
         parsed.update_script();
 
         self.broadcast(Message {

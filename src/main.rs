@@ -37,7 +37,7 @@ enum MessageType {
     ConfigPlugin,
     ListPlugins,
     Error,
-    Broadcast,
+    PluginMessage,
     #[serde(untagged)]
     Unknown(String),
 }
@@ -120,21 +120,12 @@ fn try_serve_static_file(folder: &str, filename: &str) -> Option<Response> {
 fn try_find_plugin_or_static(path: &str) -> Result<Response> {
     let not_found = Ok(Response::new(404, "Not Found", b"404 - Not Found".to_vec()));
 
-    let script_re = Regex::new("/script/(.*)\\.js").unwrap();
-    if let Some(caps) = script_re.captures(path) {
-        let file_path = format!("plugins/{}/script.js", &caps[1]);
-
-        if Path::new(&file_path).exists() {
-            if let Ok(content) = fs::read_to_string(&file_path) {
-                let mut response = Response::new(200, "OK", content.as_bytes().to_vec());
-                response
-                    .headers_mut()
-                    .push(("Content-Type".into(), b"text/javascript".to_vec()));
-                response
-                    .headers_mut()
-                    .push(("Access-Control-Allow-Origin".into(), "*".into()));
-                return Ok(response);
-            }
+    let plugin_re = Regex::new("/plugin/(.*)/(.*\\.js)").unwrap();
+    if let Some(caps) = plugin_re.captures(path) {
+        if let Some(response) =
+            try_serve_static_file(format!("plugins/{}", &caps[1]).as_str(), &caps[2])
+        {
+            return Ok(response);
         }
     }
 

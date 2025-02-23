@@ -26,6 +26,11 @@ interface Config<T> {
   default: T;
 }
 
+interface Script {
+  url?: string;
+  inline?: string;
+}
+
 interface Plugin {
   name: string;
   version: string;
@@ -33,10 +38,8 @@ interface Plugin {
   description?: string;
   url?: string;
   configs: Array<Config<any>>;
-  script: {
-    url?: string;
-    inline?: string;
-  };
+  script: Script;
+  backgroundScript?: Script;
 }
 
 class Display {
@@ -44,6 +47,7 @@ class Display {
   _plugins: { [name: string]: Plugin } = {};
   host: string;
   selected?: Plugin;
+  callback?: (mesg: Message) => void;
 
   get plugins() {
     return Object.values(this._plugins);
@@ -114,6 +118,7 @@ class Display {
 
     // Clear the body
     document.body.innerHTML = "";
+    this.callback = undefined;
 
     // Insert the plugin
     const infoElement = document.createElement("info");
@@ -130,10 +135,25 @@ class Display {
       if (config.name !== "enabled" && config.value !== null)
         webComponent.setAttribute(config.name, String(config.value));
     }
+
+    if (this.selected.backgroundScript?.url) {
+      (webComponent as any).send = (mesg: Message) => {
+        this.ws.send({
+          type: "pluginMessage",
+          data: {
+            name: this.selected!.name,
+            mesg,
+          },
+        });
+      };
+
+      (webComponent as any).subscribe = (callback: (mesg: Message) => void) =>
+        (this.callback = callback);
+    }
+
     document.body.appendChild(webComponent);
   }
 
-  // TODO not tested
   next() {
     const plugins = this.plugins;
 
@@ -170,11 +190,17 @@ class Display {
         let name = mesg.data.name as string;
         this.plugins = this.plugins.filter((p) => p.name !== name);
         break;
+
+      case "pluginMessage":
+        let name2 = mesg.data.name as string;
+
+        if (this.selected && this.selected.name === name2 && this.callback)
+          this.callback(mesg.data.mesg);
+
+        break;
+
       case "error":
         console.error("Error:", mesg.data);
-        break;
-      // IGNORE
-      case "broadcast":
         break;
       default:
         console.warn("Unknown plugin type:", mesg.type);
