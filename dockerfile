@@ -1,4 +1,4 @@
-FROM node:20 as node-builder
+FROM node:20 AS node-builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY build_static.sh ./build_static.sh
 
 RUN chmod +x build_static.sh && ./build_static.sh
 
-FROM rust:1.84-alpine3.20 as rust-builder
+FROM rust:1.84-alpine3.20 AS rust-builder
 
 WORKDIR /app
 

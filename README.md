@@ -1,4 +1,14 @@
+<div align="center">
+
 # RPi WidgetBox
+
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/nohackjustnoobb/RPi-WidgetBox/main.yml?style=for-the-badge&label=Main)](https://github.com/nohackjustnoobb/RPi-WidgetBox/actions/workflows/main.yml)
+[![GitHub License](https://img.shields.io/github/license/nohackjustnoobb/RPi-WidgetBox?style=for-the-badge)](https://github.com/nohackjustnoobb/RPi-WidgetBox/blob/master/LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/nohackjustnoobb/rpi-widgetbox?style=for-the-badge)](https://hub.docker.com/repository/docker/nohackjustnoobb/rpi-widgetbox)
+
+</div>
+
+![preview](./preview.png)
 
 RPi WidgetBox is a simple desktop widget application designed primarily for Raspberry Pi and other small-screen devices. However, it can run on any device that supports a modern web browser.
 
