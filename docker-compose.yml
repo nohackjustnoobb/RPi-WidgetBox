@@ -7,5 +7,5 @@ services:
     ports:
       - 3012:3012
     volumes:
-      - ./plugins:/app/plugins
+      - ./data:/data
     restart: unless-stopped

@@ -14,6 +14,9 @@ impl Server {
                 type_: MessageType::PluginMessage,
                 data,
             }),
+            MessageType::GetStyle => self.get_style(),
+            MessageType::SetStyle => self.set_style(data),
+            MessageType::RemoveStyle => self.remove_style(),
             _ => self.send(Message::error("Unsupported type.")),
         }
     }

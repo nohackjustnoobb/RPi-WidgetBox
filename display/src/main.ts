@@ -1,9 +1,6 @@
-import './style.css';
+import "./style.css";
 
-import {
-  Message,
-  WebSocketClient,
-} from './webSocket';
+import { Message, WebSocketClient } from "./webSocket";
 
 function updateTheme() {
   const useDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -48,6 +45,31 @@ class Display {
   host: string;
   selected?: Plugin;
   callback?: (mesg: Message) => void;
+  _style: string | null = null;
+
+  get style() {
+    return this._style;
+  }
+
+  set style(style: string | null) {
+    // Remove existing style link if present
+    const existingLink = document.querySelector("link[data-custom-style]");
+    if (existingLink) existingLink.remove();
+
+    if (!style) {
+      this._style = null;
+      return;
+    }
+
+    this._style = "http://" + this.host + style;
+
+    // Create and append new style link
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = this._style;
+    link.setAttribute("data-custom-style", "");
+    document.head.appendChild(link);
+  }
 
   get plugins() {
     return Object.values(this._plugins);
@@ -197,6 +219,14 @@ class Display {
         if (this.selected && this.selected.name === name2 && this.callback)
           this.callback(mesg.data.mesg);
 
+        break;
+
+      case "setStyle":
+      case "getStyle":
+        this.style = mesg.data.url || null;
+        break;
+      case "removeStyle":
+        this.style = null;
         break;
 
       case "error":

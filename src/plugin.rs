@@ -73,9 +73,9 @@ impl PluginMeta {
 }
 
 impl Server {
-    /// Lists all available plugins by reading their metadata from the `plugins` directory.
+    /// Lists all available plugins by reading their metadata from the `data/plugins` directory.
     ///
-    /// This function iterates through each subdirectory in the `plugins` directory,
+    /// This function iterates through each subdirectory in the `data/plugins` directory,
     /// looking for a `meta.json` file. If found and successfully parsed, the plugin's
     /// metadata is added to a list. Finally, it sends a message containing the list
     /// of plugins.
@@ -86,21 +86,23 @@ impl Server {
     pub fn list_plugins(&self) -> Result<()> {
         let mut plugins = Vec::new();
 
-        if let Ok(entries) = fs::read_dir("plugins") {
+        if let Ok(entries) = fs::read_dir("data/plugins") {
             for entry in entries {
                 if let Ok(entry) = entry {
                     let path = entry.path();
-                    if path.is_dir() {
-                        let file_path = format!("{}/meta.json", path.to_str().unwrap());
-                        if let Ok(content) = fs::read_to_string(file_path) {
-                            match serde_json::from_str::<PluginMeta>(&content) {
-                                Ok(mut m) => {
-                                    m.update_script();
-                                    plugins.push(m)
-                                }
-                                Err(_) => continue,
-                            };
-                        }
+                    if !path.is_dir() {
+                        continue;
+                    }
+
+                    let file_path = format!("{}/meta.json", path.to_str().unwrap());
+                    if let Ok(content) = fs::read_to_string(file_path) {
+                        match serde_json::from_str::<PluginMeta>(&content) {
+                            Ok(mut m) => {
+                                m.update_script();
+                                plugins.push(m)
+                            }
+                            Err(_) => continue,
+                        };
                     }
                 }
             }
@@ -112,7 +114,7 @@ impl Server {
         })
     }
 
-    /// Adds a plugin by creating a new directory in `plugins` with the plugin's name,
+    /// Adds a plugin by creating a new directory in `data/plugins` with the plugin's name,
     /// and creating a `meta.json` file in it with the plugin's metadata. The metadata is
     /// either obtained from the `url` field in the `data` parameter or from the `meta`
     /// field in the `data` parameter, if `url` is not provided. If `meta` is not provided
@@ -175,7 +177,7 @@ impl Server {
 
         parsed.configs = Some(configs);
 
-        let dir_path = format!("plugins/{}", parsed.name);
+        let dir_path = format!("data/plugins/{}", parsed.name);
         if Path::new(dir_path.as_str()).exists() {
             if fs::remove_dir_all(&dir_path).is_err() {
                 return self.send(Message::error("Failed to remove old plugin."));
@@ -280,7 +282,7 @@ impl Server {
             None => return self.send(Message::error("Failed to get plugin.")),
         };
 
-        let dir_path = format!("plugins/{}", name);
+        let dir_path = format!("data/plugins/{}", name);
         if !Path::new(dir_path.as_str()).exists() {
             return self.send(Message::error("Plugin not found."));
         }
@@ -318,7 +320,7 @@ impl Server {
             Err(_) => return self.send(Message::error("Failed to parse configs.")),
         };
 
-        let file_path = format!("plugins/{}/meta.json", name);
+        let file_path = format!("data/plugins/{}/meta.json", name);
         let raw = match fs::read_to_string(&file_path) {
             Ok(r) => r,
             Err(_) => return self.send(Message::error("Failed to read meta file.")),

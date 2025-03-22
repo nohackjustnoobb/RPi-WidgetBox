@@ -1,6 +1,7 @@
 mod handler;
 mod logger;
 mod plugin;
+mod style;
 
 use std::{
     fs,
@@ -38,6 +39,9 @@ enum MessageType {
     ListPlugins,
     Error,
     PluginMessage,
+    SetStyle,
+    RemoveStyle,
+    GetStyle,
     #[serde(untagged)]
     Unknown(String),
 }
@@ -120,10 +124,17 @@ fn try_serve_static_file(folder: &str, filename: &str) -> Option<Response> {
 fn try_find_plugin_or_static(path: &str) -> Result<Response> {
     let not_found = Ok(Response::new(404, "Not Found", b"404 - Not Found".to_vec()));
 
+    let style_re = Regex::new("custom/style.css").unwrap();
+    if style_re.captures(path).is_some() {
+        if let Some(response) = try_serve_static_file("data", "style.css") {
+            return Ok(response);
+        }
+    }
+
     let plugin_re = Regex::new("/plugin/(.*)/(.*\\.js)").unwrap();
     if let Some(caps) = plugin_re.captures(path) {
         if let Some(response) =
-            try_serve_static_file(format!("plugins/{}", &caps[1]).as_str(), &caps[2])
+            try_serve_static_file(format!("data/plugins/{}", &caps[1]).as_str(), &caps[2])
         {
             return Ok(response);
         }

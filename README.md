@@ -10,7 +10,7 @@
 
 ![preview](./preview.png)
 
-RPi WidgetBox is a simple desktop widget application designed primarily for Raspberry Pi and other small-screen devices. However, it can run on any device that supports a modern web browser.
+**RPi WidgetBox** is a simple desktop widget application designed primarily for Raspberry Pi and other small-screen devices. However, it can run on any device that supports a modern web browser.
 
 Features
 
@@ -19,6 +19,8 @@ Features
 - Cross-platform—works on Raspberry Pi, PCs, and more
 
 To use the application, you'll need to add plugins. Several common plugins are available, including a fullscreen clock, weather widget. Check out the [RPi-WidgetBox-Plugins](https://github.com/nohackjustnoobb/RPi-WidgetBox-Plugins) repository for more details.
+
+If you need to use plugins that require system-level APIs, you must use [RPi-WidgetBox-Desktop](https://github.com/nohackjustnoobb/RPi-WidgetBox-Desktop) instead of the website version. The desktop version offers additional capabilities that the web version does not support.
 
 ## Quick Start
 
@@ -40,7 +42,7 @@ services:
     ports:
       - "3012:3012"
     volumes:
-      - ./plugins:/app/plugins
+      - ./data:/data
     restart: unless-stopped
 ```
 
@@ -126,9 +128,9 @@ cargo run
 
 - [x] Display modules
 - [x] Build script
-- [ ] Documentation
+- [x] Documentation
 - [x] Dockerize
 - [ ] Auto-Update
-- [ ] Customizable display options
+- [x] Customizable display
 - [ ] New Config Type: Web Component
 - [ ] New Config Type: Upload

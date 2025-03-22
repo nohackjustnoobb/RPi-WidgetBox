@@ -27,6 +27,8 @@ COPY --from=node-builder /app/static ./static
 
 COPY --from=rust-builder /app/target/release/rpi-widgetbox ./rpi-widgetbox
 
+RUN mkdir -p /app/data && ln -s /app/data /data
+
 EXPOSE 3012
 
 CMD [ "./rpi-widgetbox" ]
